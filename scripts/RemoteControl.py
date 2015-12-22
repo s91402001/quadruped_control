@@ -94,6 +94,7 @@ def MainProssece():
 			#rospy.loginfo("t = %s"%t)
 			print ("t = %s"%t)
 		elif t >5 and t <15:
+			print ("t = %s"%t)
 			x1 = 0
 			x2 = 0
 			x3 = 0
@@ -119,14 +120,14 @@ def MainProssece():
 			%(t,leg1th1,leg1th2,leg2th1,leg2th2 ,leg3th1,leg3th2,leg4th1,leg4th2))
 			print("Right H = %s  Left H = %s  Right L = %s  Left L = %s  Ta = %s  Td = %s  ptd = %s  ptd1 = %s  isStop = %s"
 			%(RightH,LeftH,RightL,LeftL,Ta,Td,ptd,ptd1,isStop))
-			angles.ang1 = leg1th1
-			angles.ang2 = leg2th1
-			angles.ang3 = leg3th1
-			angles.ang4 = leg4th1
-			angles.ang5 = leg1th2
-			angles.ang6 = leg2th2
-			angles.ang7 = leg3th2
-			angles.ang8 = leg4th2
+		angles.ang1 = leg1th1
+		angles.ang2 = leg2th1
+		angles.ang3 = leg3th1
+		angles.ang4 = leg4th1
+		angles.ang5 = leg1th2
+		angles.ang6 = leg2th2
+		angles.ang7 = leg3th2
+		angles.ang8 = leg4th2
 		pub1.publish(angles)
 		rate.sleep()
 
