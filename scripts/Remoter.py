@@ -70,7 +70,13 @@ def onKeyPress(event):
 		print ''
 	elif event.char =='z':
 		pub11.publish(0)
-													
+	elif event.char ==',':
+		pub3.publish(-0.005)
+		pub4.publish(0.005)
+	elif event.char =='.':
+		pub3.publish(0.005)
+		pub4.publish(-0.005)	
+														
 pub1 = rospy.Publisher('LeftH', Float32, queue_size=1024) 
 pub2 = rospy.Publisher('RightH', Float32, queue_size=1024) 
 pub3 = rospy.Publisher('LeftL', Float32, queue_size=1024) 
