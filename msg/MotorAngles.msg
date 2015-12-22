@@ -1,0 +1,8 @@
+float32 ang1
+float32 ang2
+float32 ang3
+float32 ang4
+float32 ang5
+float32 ang6
+float32 ang7
+float32 ang8
