@@ -23,6 +23,30 @@ def trajectory(ptd,H,L,Td,Ta,t) :
 
 	return x,y
 
+def reverse_trajectory(ptd,H,L,Td,Ta,t) :
+	p1 =[ptd[0] + L/2, ptd[1]]
+	p2 =[ptd[0] - L/2, ptd[1]]
+	p3 =[ptd[0], ptd[1] + H]
+	x1 = p1[0]
+	x2 = p2[0]
+	x3 = p3[0]
+	y1 = p1[1]
+	y2 = p2[1]
+	y3 = p3[1]	
+	a = -(x1*(y2 - y3) - x2*(y1 - y3) + x3*(y1 - y2))/((x1 - x2)*(x1 - x3)*(x2 - x3))
+	b = (x1*x1*y2 - x2*x2*y1 - x1*x1*y3 + x3*x3*y1 + x2*x2*y3 - x3*x3*y2)/((x1 - x2)*(x1 - x3)*(x2 - x3))
+	c = (x1*y2 - x2*y1)/(x1 - x2) + (x1*x2*(y1 - y3))/((x1 - x2)*(x1 - x3)) - (x1*x2*(y2 - y3))/((x1 - x2)*(x2 - x3))
+	T = Td + Ta
+	tt = t%T
+	if tt <= Td :
+		x = p2[0] + tt*(p1[0]-p2[0])/Td;
+		y = p1[1];
+	else:
+		x = p1[0] - (tt-Td)*(p1[0]-p2[0])/Ta;
+		y = a*x**2+b*x+c;
+
+	return x,y
+
 def KneeRotationAng(th2) :
 	l1 = 0.093
 	l2	= 0.093
@@ -91,6 +115,14 @@ def generateCommand(t):
 	return leg1th1,leg1th2,leg2th1,leg2th2 ,leg3th1,leg3th2,leg4th1,leg4th2
 
 def generateRemoteCommand(ptd,ptd1,LeftH,RightH,LeftL,RightL,Ta,Td,t):
+	x1,y1 = trajectory(ptd,LeftH,LeftL,Td,Ta,t + Td)
+	x2,y2 = trajectory(ptd,RightH,RightL,Td,Ta,t + (Td-Ta)/2.0)
+	x3,y3 = trajectory(ptd,LeftH,LeftL,Td,Ta,t + (Td-Ta)/2.0)
+	x4,y4 = trajectory(ptd,RightH,RightL,Td,Ta,t + Td)
+	leg1th1,leg1th2,leg2th1,leg2th2 ,leg3th1,leg3th2,leg4th1,leg4th2 = actualReference(x1,y1,x2,y2,x3,y3,x4,y4)
+	return leg1th1,leg1th2,leg2th1,leg2th2 ,leg3th1,leg3th2,leg4th1,leg4th2
+
+def generateRemoteTurnCommand(ptd,ptd1,LeftH,RightH,LeftL,RightL,Ta,Td,t):
 	x1,y1 = trajectory(ptd,LeftH,LeftL,Td,Ta,t + Td)
 	x2,y2 = trajectory(ptd,RightH,RightL,Td,Ta,t + (Td-Ta)/2.0)
 	x3,y3 = trajectory(ptd,LeftH,LeftL,Td,Ta,t + (Td-Ta)/2.0)

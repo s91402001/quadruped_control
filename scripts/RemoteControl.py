@@ -19,6 +19,7 @@ Td = 1.0
 ptd = [-0.02,-0.15]
 ptd1 = [0.0,-0.15]
 isStop = False
+isTurn = False
 State = 1
 def RightHCallback(data):
 	global RightH
@@ -63,6 +64,9 @@ def ptd1yCallback(data):
 def isStopCallback(data):
 	global isStop
 	isStop = not isStop
+	print data.data
+def isTurnCallback(data)
+	global isTurn
 	print data.data
 	
 def MainProssece():
