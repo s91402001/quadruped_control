@@ -12,7 +12,15 @@
 #include <PID_v1.h>
 #include <quadruped_control/MotorAngles.h>
 #define revoluteCount 3895.870773854245
+// I2Cdev and MPU6050 must be installed as libraries, or else the .cpp/.h files
+// for both classes must be in the include path of your project
 
+#include <i2c_t3.h>
+#include "I2Cdev.h"
+#include "MPU6050.h" // not necessary if using MotionApps include file
+
+// Arduino Wire library is required if I2Cdev I2CDEV_ARDUINO_WIRE implementation
+// is used in I2Cdev.h
 
 //create ros node
 class NewHardware : public ArduinoHardware
@@ -20,7 +28,7 @@ class NewHardware : public ArduinoHardware
   public:
   NewHardware() :ArduinoHardware(&Serial1,115200){};
   };
-  ros::NodeHandle_<NewHardware,3,1,4096,4096> nh;
+  ros::NodeHandle_<NewHardware,3,2,4096,1024*8> nh;
 //ros::NodeHandle  nh;
 double setpoint1 = 90, setpoint2 = -90, setpoint3 = 90.0, setpoint4 = -90.0;
 double setpoint5 = 0, setpoint6 = 0, setpoint7 = 0, setpoint8 = 0;
@@ -96,22 +104,51 @@ union IntsVsBytes{
 FloatsVsBytes floatConvert;
 IntsVsBytes intConvert;
 
+//MPU 6050 setting
+MPU6050 accelgyro;
+int16_t ax, ay, az;
+int16_t gx, gy, gz;
+
 // create ros subscriber
 ros::Subscriber<quadruped_control::MotorAngles> sub1("MotorSetpoint", &motor_setpoint_cb);
 ros::Subscriber<std_msgs::Empty> sub2("StopMotors", &Stop_cb);
 ros::Subscriber<geometry_msgs::Point> sub3("Gains", &Gain_cb);
 //create ros publisher
 quadruped_control::MotorAngles angles;
-ros::Publisher pub1("motorAng", &angles);
-
-
+geometry_msgs::Point orientation;
+//ros::Publisher pub1("motorAng", &angles);
+ros::Publisher pub2("BodyOrientation", &orientation);
+double gyro_LSB = 65.5;
+double Xang=0.0,Yang=0.0,Zang=0.0;
 void setup() {
+    //MPU 6050 setting
+      // join I2C bus (I2Cdev library doesn't do this automatically)
+    #if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
+        Wire.begin();
+    #elif I2CDEV_IMPLEMENTATION == I2CDEV_BUILTIN_FASTWIRE
+        Fastwire::setup(400, true);
+    #endif
+    Serial.println("Initializing I2C devices...");
+    accelgyro.initialize();
+    accelgyro.setFullScaleGyroRange(1);//65.5 = 1 degree/s   range = +- 500 degree/s
+    // verify connection
+    Serial.println("Testing device connections...");
+    Serial.println(accelgyro.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
+    accelgyro.setXGyroOffset(149.8/2.0);
+    accelgyro.setYGyroOffset(-24.02/2.0);
+    accelgyro.setZGyroOffset(20.17/2.0);
+  pinMode(20,INPUT);
+  Serial.begin(9600);
+  Serial.println("begin setup");
+  //
   nh.getHardware() -> setBaud(115200);
   nh.initNode();
+  //nh.advertise(pub1);
+  nh.advertise(pub2);
   nh.subscribe(sub1);
   nh.subscribe(sub2);
   nh.subscribe(sub3);
-  nh.advertise(pub1);
+
   //turn the PID on
   motorPID1.SetMode(AUTOMATIC);
   motorPID2.SetMode(AUTOMATIC);
@@ -138,6 +175,10 @@ void setup() {
   motorPID6.SetSampleTime(10);
   motorPID7.SetSampleTime(10);
   motorPID8.SetSampleTime(10);
+
+  
+  Serial.println("End setup");
+  delay(10);
 }
 
 void loop() {
@@ -218,11 +259,23 @@ for(int index =0;index<32;index++)
   Serial2.write(intConvert.Bs[index]);
   }
     }
-nh.spinOnce();
 long now_time = millis();
-if(now_time - pre_time >5 )
-  {
-    pub1.publish(&angles);
+ nh.spinOnce();   
+ if(now_time - pre_time >200 )
+{
+  accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+  double delta_time = (double)(now_time-pre_time)/1000.0;
+  Xang += (double)gx/gyro_LSB*delta_time;
+  Yang += (double)gy/gyro_LSB*delta_time;
+  Zang += (double)gz/gyro_LSB*delta_time;
+  orientation.x = Xang;
+  orientation.y = Yang;
+  orientation.z = Zang;
+  //Serial.print(Xang); Serial.print("\t");
+  //Serial.print(Yang); Serial.print("\t");
+  //Serial.println(Zang);
+    //pub1.publish(&angles);    
+    pub2.publish(&orientation);
     pre_time = now_time;
-  }   
+  }
 }

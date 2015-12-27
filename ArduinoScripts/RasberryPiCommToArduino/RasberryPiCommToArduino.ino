@@ -1,4 +1,4 @@
-//#define USE_USBCON //使用藍牙的話註解此行,使用USB連線取消註解此行
+#define USE_USBCON //使用藍牙的話註解此行,使用USB連線取消註解此行
 #define ENCODER_OPTIMIZE_INTERRUPTS //最佳化encoder的中斷
 #if (ARDUINO >= 100)
 #include <Arduino.h>
@@ -361,12 +361,12 @@ void loop() {
   motor_control(motor8A_pin, motor8B_pin, motor8Pwm_pin, 0);
     }
     long now_time = micros();
-    /*
+    
     if(now_time - pre_time >200)
     {
-      pub1.publish(&angles);  
+      //pub1.publish(&angles);  
       pre_time = now_time;
-      }*/
+      }
 
 nh.spinOnce();
 }
