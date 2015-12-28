@@ -1,6 +1,6 @@
 #define ENCODER_OPTIMIZE_INTERRUPTS //最佳化encoder的中斷
 #include <Encoder.h>
-
+#include"math.h"
 #define encoder1_pin1 22
 #define encoder1_pin2 24
 #define encoder2_pin1 26
@@ -50,7 +50,7 @@
 
 
 
-int pwm1 =0, pwm2 =0, pwm3 =0, pwm4 =0, pwm5 =0, pwm6 =0, pwm7 =0, pwm8 =0;
+int pwm1 = 0, pwm2 = 0, pwm3 = 0, pwm4 = 0, pwm5 = 0, pwm6 = 0, pwm7 = 0, pwm8 = 0;
 long motorPosition1 = 0, motorPosition2 = 0, motorPosition3 = 0, motorPosition4 = 0;
 long motorPosition5 = 0, motorPosition6 = 0, motorPosition7 = 0, motorPosition8 = 0;
 bool isStop = 0;
@@ -93,15 +93,15 @@ void motor_control(int pin1, int pin2, int pwmPin, int pwm) {
   }
 }
 
-union FloatsVsBytes{
-    float Fs[8];
-    byte Bs[32];
-  };
+union FloatsVsBytes {
+  float Fs[8];
+  byte Bs[32];
+};
 
-union IntsVsBytes{
-    float Is[8];
-    byte Bs[32];
-  };
+union IntsVsBytes {
+  int Is[8];
+  byte Bs[32];
+};
 
 FloatsVsBytes floatConvert;
 IntsVsBytes intConvert;
@@ -122,7 +122,7 @@ void setup() {
   pinMode(motor7A_pin, OUTPUT);
   pinMode(motor7B_pin, OUTPUT);
   pinMode(motor8A_pin, OUTPUT);
-  pinMode(motor8B_pin, OUTPUT);  
+  pinMode(motor8B_pin, OUTPUT);
   motor_control(motor1A_pin, motor1B_pin, motor1Pwm_pin, 0);
   motor_control(motor2A_pin, motor2B_pin, motor2Pwm_pin, 0);
   motor_control(motor3A_pin, motor3B_pin, motor3Pwm_pin, 0);
@@ -131,11 +131,12 @@ void setup() {
   motor_control(motor6A_pin, motor6B_pin, motor6Pwm_pin, 0);
   motor_control(motor7A_pin, motor7B_pin, motor7Pwm_pin, 0);
   motor_control(motor8A_pin, motor8B_pin, motor8Pwm_pin, 0);
-  analogWriteResolution(12);    
-  Encoder1.write((int)(revoluteCount/4.0));
-  Encoder2.write((int)(-revoluteCount/4.0));
-  Encoder3.write((int)(revoluteCount/4.0));
-  Encoder4.write((int)(-revoluteCount/4.0));
+  analogWriteResolution(12);
+  Encoder1.write((int)(revoluteCount / 4.0));
+  Encoder2.write((int)(-revoluteCount / 4.0));
+  Encoder3.write((int)(revoluteCount / 4.0));
+  Encoder4.write((int)(-revoluteCount / 4.0));
+  Serial.begin(9600);
   Serial2.begin(115200);
 }
 
@@ -165,29 +166,62 @@ void loop() {
   floatConvert.Fs[6] = Ang7;
   floatConvert.Fs[7] = Ang8;
   //send motor angle
-Serial2.write(0xff);
-for(int index =0;index<32;index++)
-{
-  Serial2.write(floatConvert.Bs[index]);
+  Serial2.write(0xff);
+  for (int index = 0; index < 32; index++)
+  {
+    Serial2.write(floatConvert.Bs[index]);
   }
   //read pwn value
-  while(Serial2.available())
+  if (Serial2.available())
   {
-      int data = Serial2.read();
-      if(data == 0xff)
+    int data = Serial2.read();
+    if (data == 0xff)
+    {
+      for (int index = 0; index < 32; index++) {
+        intConvert.Bs[index] = Serial2.read();
+      }
+
+      for (int index = 0; index < 8; index++)
       {
-        for(int index =0;index<32;index++){
-          intConvert.Bs[index] = Serial2.read();
-          }
+        if ( isnan(intConvert.Is[index]) ) {
+          intConvert.Is[index] = 0;
         }
+      }
     }
-  motor_control(motor1A_pin, motor1B_pin, motor1Pwm_pin, intConvert.Is[0]);
-  motor_control(motor2A_pin, motor2B_pin, motor2Pwm_pin, intConvert.Is[1]);
-  motor_control(motor3A_pin, motor3B_pin, motor3Pwm_pin, intConvert.Is[2]);
-  motor_control(motor4A_pin, motor4B_pin, motor4Pwm_pin, intConvert.Is[3]);
-  motor_control(motor5A_pin, motor5B_pin, motor5Pwm_pin, intConvert.Is[4]);
-  motor_control(motor6A_pin, motor6B_pin, motor6Pwm_pin, intConvert.Is[5]);
-  motor_control(motor7A_pin, motor7B_pin, motor7Pwm_pin, intConvert.Is[6]);
-  motor_control(motor8A_pin, motor8B_pin, motor8Pwm_pin, intConvert.Is[7]); 
-  
+    motor_control(motor1A_pin, motor1B_pin, motor1Pwm_pin, intConvert.Is[0]);
+    motor_control(motor2A_pin, motor2B_pin, motor2Pwm_pin, intConvert.Is[1]);
+    motor_control(motor3A_pin, motor3B_pin, motor3Pwm_pin, intConvert.Is[2]);
+    motor_control(motor4A_pin, motor4B_pin, motor4Pwm_pin, intConvert.Is[3]);
+    motor_control(motor5A_pin, motor5B_pin, motor5Pwm_pin, intConvert.Is[4]);
+    motor_control(motor6A_pin, motor6B_pin, motor6Pwm_pin, intConvert.Is[5]);
+    motor_control(motor7A_pin, motor7B_pin, motor7Pwm_pin, intConvert.Is[6]);
+    motor_control(motor8A_pin, motor8B_pin, motor8Pwm_pin, intConvert.Is[7]);
+  } else {
+    motor_control(motor1A_pin, motor1B_pin, motor1Pwm_pin, 0);
+    motor_control(motor2A_pin, motor2B_pin, motor2Pwm_pin, 0);
+    motor_control(motor3A_pin, motor3B_pin, motor3Pwm_pin, 0);
+    motor_control(motor4A_pin, motor4B_pin, motor4Pwm_pin, 0);
+    motor_control(motor5A_pin, motor5B_pin, motor5Pwm_pin, 0);
+    motor_control(motor6A_pin, motor6B_pin, motor6Pwm_pin, 0);
+    motor_control(motor7A_pin, motor7B_pin, motor7Pwm_pin, 0);
+    motor_control(motor8A_pin, motor8B_pin, motor8Pwm_pin, 0);
+  }
+  Serial.print(intConvert.Is[0]);
+  Serial.print('\t');
+  Serial.print(intConvert.Is[1]);
+  Serial.print('\t');
+  Serial.print(intConvert.Is[2]);
+  Serial.print('\t');
+  Serial.print(intConvert.Is[3]);
+  Serial.print('\t');
+  Serial.print(intConvert.Is[4]);
+  Serial.print('\t');
+  Serial.print(intConvert.Is[5]);
+  Serial.print('\t');
+  Serial.print(intConvert.Is[6]);
+  Serial.print('\t');
+  Serial.print(intConvert.Is[7]);
+  Serial.println(' ');
+
+
 }

@@ -65,7 +65,7 @@ def isStopCallback(data):
 	global isStop
 	isStop = not isStop
 	print data.data
-def isTurnCallback(data)
+def isTurnCallback(data):
 	global isTurn
 	print data.data
 	
