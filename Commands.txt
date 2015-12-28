@@ -1,0 +1,15 @@
+sudo rfcomm connect /dev/rfcomm0  98:D3:31:20:0D:44
+
+sudo rfcomm connect /dev/rfcomm0  98:D3:31:40:52:82
+
+sudo rfcomm release /dev/rfcomm0
+
+rosrun rosserial_server serial_node _rt:=/dev/rfcomm1 _baud:=115200
+
+
+source ~/catkin_ws/devel/setup.bash
+sudo rfcomm connect /dev/rfcomm1  98:D3:31:40:52:82
+sudo rfcomm connect /dev/rfcomm2  98:D3:31:20:0D:44
+roslaunch quadruped_control NodeLaunch.launch 
+rosrun quadruped_control WalkExp.py
+rqt_plot /BodyOrientation/x:y:z
