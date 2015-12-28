@@ -1,4 +1,4 @@
-#define USE_USBCON //使用藍牙的話註解此行,使用USB連線取消註解此行
+//#define USE_USBCON //使用藍牙的話註解此行,使用USB連線取消註解此行
 #define ENCODER_OPTIMIZE_INTERRUPTS //最佳化encoder的中斷
 #if (ARDUINO >= 100)
 #include <Arduino.h>
@@ -138,7 +138,7 @@ ros::Subscriber<std_msgs::Empty> sub2("StopMotors", &Stop_cb);
 ros::Subscriber<geometry_msgs::Point> sub3("Gains", &Gain_cb);
 //create ros publisher
 quadruped_control::MotorAngles angles;
-//ros::Publisher pub1("motorAng", &angles);
+ros::Publisher pub1("motorAng", &angles);
 
 
 
@@ -211,7 +211,7 @@ void setup() {
   nh.subscribe(sub1);
   nh.subscribe(sub2);
   nh.subscribe(sub3);
-  //nh.advertise(pub1);
+  nh.advertise(pub1);
   //turn the PID on
   motorPID1.SetMode(AUTOMATIC);
   motorPID2.SetMode(AUTOMATIC);
@@ -362,9 +362,9 @@ void loop() {
     }
     long now_time = micros();
     
-    if(now_time - pre_time >200)
+    if(now_time - pre_time >100)
     {
-      //pub1.publish(&angles);  
+      pub1.publish(&angles);  
       pre_time = now_time;
       }
 

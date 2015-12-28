@@ -1,0 +1,22 @@
+<launch>
+   <node pkg="rosserial_server" type="serial_node" name="rosserial_server_teensy">
+    <rosparam>
+      port: /dev/rfcomm1
+      baud: 115200
+      require:
+        publishers: [ BodyOrientation ]
+        subscribers: [  ]
+    </rosparam>
+  </node>
+    <node pkg="rosserial_server" type="serial_node" name="rosserial_server_due">
+    <rosparam>
+      port: /dev/rfcomm2
+      baud: 115200
+      require:
+        publishers: [ motorAng ]
+        subscribers: [ MotorSetpoint, StopMotors, Gains ]
+    </rosparam>
+  </node>
+  <node pkg="rosserial_python" type="message_info_service.py"
+        name="rosserial_message_info" />
+</launch>
