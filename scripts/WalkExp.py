@@ -102,7 +102,7 @@ def MainProssece():
 	rospy.Subscriber("ptd1x", Float32, ptd1xCallback)
 	rospy.Subscriber("ptd1y", Float32, ptd1yCallback)
 	rospy.Subscriber("isStop", Float32, isStopCallback)
-	rospy.Subscriber("BodyOrientation", Point, OrientationCallback)
+	rospy.Subscriber("BodyOrientation", Float32, OrientationCallback)
 	angles = MotorAngles()
 	rate = rospy.Rate(50) # 10hz
 	
@@ -151,6 +151,8 @@ def MainProssece():
 			%(t,leg1th1,leg1th2,leg2th1,leg2th2 ,leg3th1,leg3th2,leg4th1,leg4th2))
 			print("Right H = %s  Left H = %s  Right L = %s  Left L = %s  Ta = %s  Td = %s  ptd = %s  ptd1 = %s  isStop = %s"
 			%(RightH,LeftH,RightL-deltaL,LeftL+deltaL,Ta,Td,ptd,ptd1,isStop))
+		outFile = open('ExpData.txt','a')
+		outFile.write(str(t)+'\t'+str(Orientation)+'\t'+str(desiredOrientation)+'\r\n')
 		angles.ang1 = leg1th1
 		angles.ang2 = leg2th1
 		angles.ang3 = leg3th1

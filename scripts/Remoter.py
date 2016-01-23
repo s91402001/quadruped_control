@@ -70,12 +70,18 @@ def onKeyPress(event):
 		print ''
 	elif event.char =='z':
 		pub11.publish(0)
-	elif event.char ==',':
+	elif event.char ==',':#turn left
 		pub3.publish(-0.005)
 		pub4.publish(0.005)
-	elif event.char =='.':
+	elif event.char =='.':#turn right
 		pub3.publish(0.005)
-		pub4.publish(-0.005)	
+		pub4.publish(-0.005)
+	elif event.char =='v':
+		pub12.publish(90.0)
+	elif event.char =='b':
+		pub12.publish(0)
+	elif event.char=='n':
+		pub12.publish(-90.0)	
 														
 pub1 = rospy.Publisher('LeftH', Float32, queue_size=1024) 
 pub2 = rospy.Publisher('RightH', Float32, queue_size=1024) 
@@ -88,6 +94,7 @@ pub8 = rospy.Publisher('ptdy', Float32, queue_size=1024)
 pub9 = rospy.Publisher('ptd1x', Float32, queue_size=1024) 
 pub10 = rospy.Publisher('ptd1y', Float32, queue_size=1024) 
 pub11 = rospy.Publisher('isStop', Float32, queue_size=1024) 
+pub12 = rospy.Publisher('BodyOrientation',Float32, queue_size=1024)
 rospy.init_node('Adjust')
 		
 root = tk.Tk()
