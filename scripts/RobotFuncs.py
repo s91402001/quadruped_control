@@ -117,8 +117,8 @@ def generateCommand(t):
 def generateRemoteCommand(ptd,ptd1,LeftH,RightH,LeftL,RightL,Ta,Td,t):
 	x1,y1 = trajectory(ptd,LeftH,LeftL,Td,Ta,t + Td)
 	x2,y2 = trajectory(ptd,RightH,RightL,Td,Ta,t + (Td-Ta)/2.0)
-	x3,y3 = trajectory(ptd,LeftH,LeftL,Td,Ta,t + (Td-Ta)/2.0)
-	x4,y4 = trajectory(ptd,RightH,RightL,Td,Ta,t + Td)
+	x3,y3 = trajectory(ptd1,LeftH,LeftL,Td,Ta,t + (Td-Ta)/2.0)
+	x4,y4 = trajectory(ptd1,RightH,RightL,Td,Ta,t + Td)
 	leg1th1,leg1th2,leg2th1,leg2th2 ,leg3th1,leg3th2,leg4th1,leg4th2 = actualReference(x1,y1,x2,y2,x3,y3,x4,y4)
 	return leg1th1,leg1th2,leg2th1,leg2th2 ,leg3th1,leg3th2,leg4th1,leg4th2
 

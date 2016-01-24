@@ -19,10 +19,10 @@ RightL = 0.06
 deltaLmax = 0.05
 Orientation = 0.0
 desiredOrientation =0.0
-Ta = 0.35
+Ta = 0.4
 Td = 0.8
 ptd = [-0.02,-0.15]
-ptd1 = [0.0,-0.15]
+ptd1 = [0.02,-0.15]
 isStop = False
 isTurn = False
 State = 1
@@ -102,7 +102,7 @@ def MainProssece():
 	rospy.Subscriber("ptd1x", Float32, ptd1xCallback)
 	rospy.Subscriber("ptd1y", Float32, ptd1yCallback)
 	rospy.Subscriber("isStop", Float32, isStopCallback)
-	rospy.Subscriber("BodyOrientation", Float32, OrientationCallback)
+	rospy.Subscriber("BodyOrientation", Point, OrientationCallback)
 	angles = MotorAngles()
 	rate = rospy.Rate(50) # 10hz
 	
@@ -138,11 +138,11 @@ def MainProssece():
 			leg4th2 = leg4th2_des*tt*0/10
 		else :
 			
-			if (fabs(desiredOrientation-Orientation)) > 1:
+			if (fabs(desiredOrientation-Orientation)) > 5:
 				deltaL = (deltaLmax/fabs(desiredOrientation-Orientation))*(desiredOrientation-Orientation)
 				print("deltaL 1=%s"%deltaL)
 			else:
-				deltaL = deltaLmax*(desiredOrientation-Orientation)
+				deltaL = deltaLmax*(desiredOrientation-Orientation)/5.0
 				#print("deltaL =%s"%deltaL)
 				print("delta =%s"%(desiredOrientation-Orientation))
 			leg1th1,leg1th2,leg2th1,leg2th2 ,leg3th1,leg3th2,leg4th1,leg4th2 = RobotFuncs.generateRemoteCommand(ptd,ptd1,LeftH,RightH,LeftL+deltaL,RightL-deltaL,Ta,Td,t) 
@@ -151,8 +151,8 @@ def MainProssece():
 			%(t,leg1th1,leg1th2,leg2th1,leg2th2 ,leg3th1,leg3th2,leg4th1,leg4th2))
 			print("Right H = %s  Left H = %s  Right L = %s  Left L = %s  Ta = %s  Td = %s  ptd = %s  ptd1 = %s  isStop = %s"
 			%(RightH,LeftH,RightL-deltaL,LeftL+deltaL,Ta,Td,ptd,ptd1,isStop))
-		outFile = open('ExpData.txt','a')
-		outFile.write(str(t)+'\t'+str(Orientation)+'\t'+str(desiredOrientation)+'\r\n')
+		#outFile = open('ExpData.txt','a')
+		#outFile.write(str(t)+'\t'+str(Orientation)+'\t'+str(desiredOrientation)+'\r\n')
 		angles.ang1 = leg1th1
 		angles.ang2 = leg2th1
 		angles.ang3 = leg3th1
