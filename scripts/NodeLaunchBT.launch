@@ -1,7 +1,7 @@
 <launch>
    <node pkg="rosserial_server" type="serial_node" name="rosserial_server_teensy">
     <rosparam>
-      port: /dev/ttyUSB0
+      port: /dev/rfcomm1
       baud: 115200
       require:
         publishers: [BodyOrientation]
@@ -10,7 +10,7 @@
   </node>
     <node pkg="rosserial_server" type="serial_node" name="rosserial_server_due">
     <rosparam>
-      port: /dev/ttyUSB1
+      port: /dev/rfcomm2
       baud: 115200
       require:
         publishers: []

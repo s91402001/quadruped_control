@@ -23,6 +23,28 @@ def trajectory(ptd,H,L,Td,Ta,t) :
 
 	return x,y
 
+def RecTrajectory(ptd,H,L,Td,Ta,t) :
+	p1 =[ptd[0] + L/2, ptd[1]]
+	p2 =[ptd[0] - L/2, ptd[1]]
+	p3 =[ptd[0], ptd[1] + H]
+	x1 = p1[0]
+	x2 = p2[0]
+	x3 = p3[0]
+	y1 = p1[1]
+	y2 = p2[1]
+	y3 = p3[1]	
+	T = Td + Ta
+	tt = t%T
+	if tt <= Td :
+		x = p1[0]-tt*(p1[0]-p2[0])/Td;
+		y = p1[1];
+	else:
+		x = p2[0] + (tt-Td)*(p1[0]-p2[0])/Ta;
+		y = p3[1];
+
+	return x,y
+
+
 def reverse_trajectory(ptd,H,L,Td,Ta,t) :
 	p1 =[ptd[0] + L/2, ptd[1]]
 	p2 =[ptd[0] - L/2, ptd[1]]
@@ -50,7 +72,39 @@ def reverse_trajectory(ptd,H,L,Td,Ta,t) :
 def KneeRotationAng(th2) :
 	l1 = 0.093
 	l2	= 0.093
-	l0 = 0.16
+	l0 = 0.15
+	r = 0.028
+	lp = math.sqrt(l1**2+l2**2-2*l1*l2*math.cos(math.pi - math.fabs(th2)))
+	return (l0-lp)/r
+
+def KneeRotationAng1(th2) :
+	l1 = 0.093
+	l2	= 0.093
+	l0 = 0.15
+	r = 0.028
+	lp = math.sqrt(l1**2+l2**2-2*l1*l2*math.cos(math.pi - math.fabs(th2)))
+	return (l0-lp)/r
+
+def KneeRotationAng2(th2) :
+	l1 = 0.093
+	l2	= 0.093
+	l0 = 0.15
+	r = 0.028
+	lp = math.sqrt(l1**2+l2**2-2*l1*l2*math.cos(math.pi - math.fabs(th2)))
+	return (l0-lp)/r
+	
+def KneeRotationAng3(th2) :
+	l1 = 0.093
+	l2	= 0.093
+	l0 = 0.15
+	r = 0.028
+	lp = math.sqrt(l1**2+l2**2-2*l1*l2*math.cos(math.pi - math.fabs(th2)))
+	return (l0-lp)/r
+	
+def KneeRotationAng4(th2) :
+	l1 = 0.093
+	l2	= 0.093
+	l0 = 0.15
 	r = 0.028
 	lp = math.sqrt(l1**2+l2**2-2*l1*l2*math.cos(math.pi - math.fabs(th2)))
 	return (l0-lp)/r
@@ -115,10 +169,26 @@ def generateCommand(t):
 	return leg1th1,leg1th2,leg2th1,leg2th2 ,leg3th1,leg3th2,leg4th1,leg4th2
 
 def generateRemoteCommand(ptd,ptd1,LeftH,RightH,LeftL,RightL,Ta,Td,t):
+	#x1,y1 = RecTrajectory(ptd,LeftH,LeftL,Td,Ta,t + Td)
+	#x2,y2 = RecTrajectory(ptd,RightH,RightL,Td,Ta,t + (Td-Ta)/2.0)
+	#x3,y3 = RecTrajectory(ptd1,LeftH,LeftL,Td,Ta,t + (Td-Ta)/2.0)
+	#x4,y4 = RecTrajectory(ptd1,RightH,RightL,Td,Ta,t + Td)
 	x1,y1 = trajectory(ptd,LeftH,LeftL,Td,Ta,t + Td)
 	x2,y2 = trajectory(ptd,RightH,RightL,Td,Ta,t + (Td-Ta)/2.0)
-	x3,y3 = trajectory(ptd1,LeftH,LeftL,Td,Ta,t + (Td-Ta)/2.0)
-	x4,y4 = trajectory(ptd1,RightH,RightL,Td,Ta,t + Td)
+	x3,y3 = trajectory(ptd1,LeftH,LeftL,Td,Ta,t + (Td-Ta)/2)
+	x4,y4 = trajectory(ptd1,RightH,RightL,Td,Ta,t  + Td)
+	leg1th1,leg1th2,leg2th1,leg2th2 ,leg3th1,leg3th2,leg4th1,leg4th2 = actualReference(x1,y1,x2,y2,x3,y3,x4,y4)
+	return leg1th1,leg1th2,leg2th1,leg2th2 ,leg3th1,leg3th2,leg4th1,leg4th2
+
+def generateRemoteReverseCommand(ptd,ptd1,LeftH,RightH,LeftL,RightL,Ta,Td,t):
+	#x1,y1 = RecTrajectory(ptd,LeftH,LeftL,Td,Ta,t + Td)
+	#x2,y2 = RecTrajectory(ptd,RightH,RightL,Td,Ta,t + (Td-Ta)/2.0)
+	#x3,y3 = RecTrajectory(ptd1,LeftH,LeftL,Td,Ta,t + (Td-Ta)/2.0)
+	#x4,y4 = RecTrajectory(ptd1,RightH,RightL,Td,Ta,t + Td)
+	x1,y1 = reverse_trajectory(ptd,LeftH,LeftL,Td,Ta,t + Td)
+	x2,y2 = reverse_trajectory(ptd,RightH,RightL,Td,Ta,t + (Td-Ta)/2.0)
+	x3,y3 = reverse_trajectory(ptd1,LeftH,LeftL,Td,Ta,t + (Td-Ta)/2)
+	x4,y4 = reverse_trajectory(ptd1,RightH,RightL,Td,Ta,t  + Td)
 	leg1th1,leg1th2,leg2th1,leg2th2 ,leg3th1,leg3th2,leg4th1,leg4th2 = actualReference(x1,y1,x2,y2,x3,y3,x4,y4)
 	return leg1th1,leg1th2,leg2th1,leg2th2 ,leg3th1,leg3th2,leg4th1,leg4th2
 
@@ -138,6 +208,7 @@ def upDownTrajectory(ptd,H,T,t):
 	else:
 		y = ptd[1] +H - (H*2.0/T)*(tt-T/2.0)
 	return x,y
+	
 def generateUpDownCommand(t):
 	H = 0.06
 	T = 1

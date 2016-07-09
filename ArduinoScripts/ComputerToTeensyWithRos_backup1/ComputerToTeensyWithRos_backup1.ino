@@ -1,13 +1,18 @@
 //#define USE_USBCON //使用藍牙的話註解此行,使用USB連線取消註解此行
-//#define USE_TEENSY_HW_SERIAL
+#define USE_TEENSY_HW_SERIAL
+#define ENCODER_OPTIMIZE_INTERRUPTS //最佳化encoder的中斷
 #if (ARDUINO >= 100)
 #include <Arduino.h>
 #else
 #include <WProgram.h>
 #endif
-#include <Wire.h>
 #include <ros.h>
 #include <geometry_msgs/Point.h>
+#include <std_msgs/Float32.h>
+#include <PID_v1.h>
+#include <Encoder.h>
+#include <Servo.h>
+#define revoluteCount 3264.0
 // I2Cdev and MPU6050 must be installed as libraries, or else the .cpp/.h files
 // for both classes must be in the include path of your project
 
@@ -49,7 +54,47 @@ MPU6050 accelgyro;
 int16_t ax, ay, az;
 int16_t gx, gy, gz;
 
+//Motors control
+double setpoint =0, Input=0, Output=0,pre_output=0;
+double kp = 500, kd = 10, ki = 0.1;
+int pawlAng=65;
+long motorPosition=0;
+bool isStop=0;
+PID motorPID(&Input, &Output, &setpoint, kp, ki, kd, DIRECT);
+Encoder encoder(11,12);
+Servo servo1;
+Servo servo2;
+
+void motor_control(int pin1, int pin2, int pwmPin, int pwm) {
+  if (!isStop) {
+    if (pwm > 0) {
+      digitalWrite(pin1, 0);
+      digitalWrite(pin2, 1);
+    }
+    else if (pwm < 0) {
+      digitalWrite(pin1, 1);
+      digitalWrite(pin2, 0);
+    } else {
+      digitalWrite(pin1, 0);
+      digitalWrite(pin2, 0);
+    }
+    analogWrite(pwmPin, abs(pwm));
+  }
+  else {
+    digitalWrite(pin1, 0);
+    digitalWrite(pin2, 0);
+    analogWrite(pwmPin, 0);
+  }
+}
+void motor_setpoint_cb(const  std_msgs::Float32 & cmd_msg){
+  setpoint = cmd_msg.data;
+}
+void servo_setpoint_cb(const  std_msgs::Float32 & cmd_msg){
+  pawlAng = (int)cmd_msg.data;
+}
 // create ros subscriber
+ros::Subscriber<std_msgs::Float32> sub1("SpringMotorSetpoint", &motor_setpoint_cb);
+ros::Subscriber<std_msgs::Float32> sub2("ServoSetpoint", &servo_setpoint_cb);
 //create ros publisher
 geometry_msgs::Point orientation;
 ros::Publisher pub1("BodyOrientation", &orientation);
@@ -57,6 +102,18 @@ double gyro_LSB = 65.5;
 double Xang = 0.0, Yang = 0.0, Zang = 0.0;
 void setup() {
   Serial.begin(9600);
+  pinMode(6,OUTPUT);//Servo1
+  pinMode(7,OUTPUT);//Servo2
+  pinMode(8,OUTPUT);//Motor1
+  pinMode(9,OUTPUT);//Motor2
+  pinMode(10,OUTPUT);//Motor PWM
+  analogWriteResolution(12);
+   motorPID.SetMode(AUTOMATIC);
+  int resolution = 4095;
+  motorPID.SetOutputLimits(-resolution, resolution);
+  motorPID.SetSampleTime(10);
+  servo1.attach(6);
+  servo2.attach(7);
   //MPU 6050 setting
   // join I2C bus (I2Cdev library doesn't do this automatically)
 #if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
@@ -103,6 +160,8 @@ void setup() {
   //
   nh.getHardware() -> setBaud(115200);
   nh.initNode();
+  nh.subscribe(sub1);
+  nh.subscribe(sub2);
   nh.advertise(pub1);
     Serial.println("End setup");
 }
@@ -121,6 +180,7 @@ void loop() {
     // .
     // .
     // .
+
   }
 
   mpuInterrupt = false;
@@ -142,7 +202,7 @@ void loop() {
     accelgyro.dmpGetQuaternion(&q, fifoBuffer);
     accelgyro.dmpGetGravity(&gravity, &q);
     accelgyro.dmpGetYawPitchRoll(ypr, &q, &gravity);
-    /* Serial.print("ypr\t");
+    /*Serial.print("ypr\t");
      Serial.print(ypr[0] * 180/M_PI);
      Serial.print("\t");
      Serial.print(ypr[1] * 180/M_PI);
@@ -150,8 +210,21 @@ void loop() {
      Serial.println(ypr[2] * 180/M_PI);*/
   }
 
-  long now_time = millis();
-  nh.spinOnce();
+  if(nh.connected())
+  {
+  motorPosition = encoder.read();
+  Input = (double) (motorPosition / revoluteCount) * 360.0;
+  motorPID.Compute();
+  pre_output= 0.5*Output + 0.5*pre_output;
+  motor_control(8,9, 10, (int) pre_output);
+  servo1.write(0-pawlAng+155);
+  servo2.write(pawlAng);
+  }else
+  {
+    motor_control(8,9, 10, 0);
+    }
+     nh.spinOnce();
+    long now_time = millis();
   if (now_time - pre_time > 100 )
   {
     /*
@@ -170,4 +243,7 @@ void loop() {
     pub1.publish(&orientation);
     pre_time = now_time;
   }
+ 
+
+ 
 }

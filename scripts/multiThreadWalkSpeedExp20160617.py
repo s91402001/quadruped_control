@@ -11,26 +11,35 @@ from quadruped_control.msg import MotorAngles
 import thread
 
 iniTime =0
-leg1th1,leg1th2,leg2th1,leg2th2 ,leg3th1,leg3th2,leg4th1,leg4th2 = 90,0,-90,0,90,0,-90,0
-LeftH = 0.04
-RightH = 0.04
-LeftL = 0.04
-RightL = 0.04
+x1 = 0
+x2 = 0
+x3 = 0
+x4 = 0
+y1 = -0.16
+y2 = -0.16
+y3 = -0.16
+y4 = -0.16
+leg1th1,leg1th2,leg2th1,leg2th2 ,leg3th1,leg3th2,leg4th1,leg4th2  = RobotFuncs.actualReference(x1,y1,x2,y2,x3,y3,x4,y4)
+LeftH = 0.02
+RightH = 0.02
+LeftL = 0.05
+RightL = 0.05
 deltaLmax = 0.02
 Orientation = 0.0
 desiredOrientation =0.0
 Ta = 0.3
 Td = 0.8
-ptd = [-0.02,-0.15]
-ptd1 = [0.02,-0.15]
+ptd = [-0.02,-0.14]
+ptd1 = [-0.02,-0.14]
 isStop = False
 isTurn = False
 State = 1
-
+start_walk = False
+reverse = False
 def onKeyPress(event):
 	global leg1th1,leg1th2,leg2th1,leg2th2 ,leg3th1,leg3th2,leg4th1,leg4th2
 	global iniTime,LeftH,RightH,LeftL,RightL,Ta,Td
-	global ptd,ptd1,isStop
+	global ptd,ptd1,isStop,start_walk,reverse
 	global deltaLmax,Orientation,desiredOrientation
 	#text.delete("1.0",tk.END)
 	#text.insert('end', 'You pressed %s\n' % (event.char, ))
@@ -95,6 +104,10 @@ def onKeyPress(event):
 		deltaLmax = deltaLmax + 0.005
 	elif event.char == 'b':
 		deltaLmax = deltaLmax - 0.005
+	elif event.char =='m':
+		start_walk = not start_walk
+	elif event.char =='/':
+		reverse = not reverse
 
 
 
@@ -107,7 +120,7 @@ def OrientationCallback(data):
 			
 def MainProssece(*args):
 	global leg1th1,leg1th2,leg2th1,leg2th2 ,leg3th1,leg3th2,leg4th1,leg4th2
-	global iniTime,LeftH,RightH,LeftL,RightL,Ta,Td
+	global iniTime,LeftH,RightH,LeftL,RightL,Ta,Td,start_walk,reverse
 	global ptd,ptd1
 	global deltaLmax,Orientation,desiredOrientation
 	pub1 = rospy.Publisher('MotorSetpoint', MotorAngles, queue_size=1024) 
@@ -122,40 +135,35 @@ def MainProssece(*args):
 			iniTime = time.time()
 		t = time.time() -iniTime
 		if t <=5:
-			
-			leg1th1,leg1th2,leg2th1,leg2th2 ,leg3th1,leg3th2,leg4th1,leg4th2 = 90,0,-90,0,90,0,-90,0
-			#rospy.loginfo("t = %s"%t)
-			#print ("t = %s"%t)
-			#print("Orientation = %s"%Orientation)
-		elif t >5 and t <15:
-			#print ("t = %s"%t)
 			x1 = 0
 			x2 = 0
 			x3 = 0
 			x4 = 0
-			y1 = -0.16
-			y2 = -0.16
-			y3 = -0.16
-			y4 = -0.16
-			leg1th1_des,leg1th2_des,leg2th1_des,leg2th2_des ,leg3th1_des,leg3th2_des,leg4th1_des,leg4th2_des = RobotFuncs.actualReference(x1,y1,x2,y2,x3,y3,x4,y4)
-			tt =t-5			
-			leg1th1 = 90 + (leg1th1_des-90)*tt/10
-			leg2th1 = -90 + (leg2th1_des+90)*tt/10			
-			leg3th1 = 90 + (leg3th1_des-90)*tt/10
-			leg4th1 = -90 + (leg4th1_des+90)*tt/10
-			leg1th2 = leg1th2_des*tt*0/10
-			leg2th2 = leg2th2_des*tt*0/10
-			leg3th2 = leg3th2_des*tt*0/10
-			leg4th2 = leg4th2_des*tt*0/10
+			y1 = -0.15
+			y2 = -0.15
+			y3 = -0.15
+			y4 = -0.15
+			leg1th1,leg1th2,leg2th1,leg2th2 ,leg3th1,leg3th2,leg4th1,leg4th2  = RobotFuncs.actualReference(x1,y1,x2,y2,x3,y3,x4,y4)
+			#rospy.loginfo("t = %s"%t)
+			#print ("t = %s"%t)
+			#print("Orientation = %s"%Orientation)
 		else :
-			if (fabs(desiredOrientation-Orientation)) > 5:
-				deltaL = (deltaLmax/fabs(desiredOrientation-Orientation))*(desiredOrientation-Orientation)
-				print("deltaL 1=%s"%deltaL)
+			#if (fabs(desiredOrientation-Orientation)) > 5:
+			#	deltaL = (deltaLmax/fabs(desiredOrientation-Orientation))*(desiredOrientation-Orientation)
+			#	print("deltaL 1=%s"%deltaL)
+			#else:
+			#	deltaL = deltaLmax*(desiredOrientation-Orientation)/5.0
+			if start_walk is False:
+				x1, x2, x3, x4, y1, y2, y3, y4 = 0, 0, 0, 0, -0.15, -0.15, -0.15, -0.15
+				leg1th1,leg1th2,leg2th1,leg2th2 ,leg3th1,leg3th2,leg4th1,leg4th2  = RobotFuncs.actualReference(x1,y1,x2,y2,x3,y3,x4,y4)			
+			elif start_walk is True and reverse is False:
+				leg1th1,leg1th2,leg2th1,leg2th2 ,leg3th1,leg3th2,leg4th1,leg4th2 =\
+				RobotFuncs.generateRemoteCommand(ptd,ptd1,LeftH,RightH,LeftL,RightL,Ta,Td,t) 
 			else:
-				deltaL = deltaLmax*(desiredOrientation-Orientation)/5.0
-			leg1th1,leg1th2,leg2th1,leg2th2 ,leg3th1,leg3th2,leg4th1,leg4th2 = RobotFuncs.generateRemoteCommand(ptd,ptd1,LeftH,RightH,LeftL+deltaL,RightL-deltaL,Ta,Td,t) 
-		outFile = open('./ExpData/WalkExpData20160205-3.txt','a')
-		outFile.write(str(t)+'\t'+str(deltaLmax)+'\t'+str(Orientation)+'\t'+str(desiredOrientation)+'\r\n')
+				leg1th1,leg1th2,leg2th1,leg2th2 ,leg3th1,leg3th2,leg4th1,leg4th2 =\
+				RobotFuncs.generateRemoteReverseCommand(ptd,ptd1,LeftH,RightH,LeftL,RightL,Ta,Td,t) 
+		#outFile = open('./ExpData/WalkExpData20160205-3.txt','a')
+		#outFile.write(str(t)+'\t'+str(deltaLmax)+'\t'+str(Orientation)+'\t'+str(desiredOrientation)+'\r\n')
 		text.delete("1.0",tk.END)
 		text.insert('end',"Orientation = %.3f\n"%Orientation)
 		text.insert('end',"Desired Orientation = %.3f\n\n"%desiredOrientation)

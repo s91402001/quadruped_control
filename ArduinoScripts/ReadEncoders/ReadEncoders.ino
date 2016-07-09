@@ -18,6 +18,8 @@
 #define encoder7_pin2 33
 #define encoder8_pin1 35
 #define encoder8_pin2 37
+#define encoder9_pin1 A2
+#define encoder9_pin2 A3
 
 #define motor1A_pin 38
 #define motor1B_pin 40
@@ -36,6 +38,8 @@
 #define motor7B_pin 49
 #define motor8A_pin 51
 #define motor8B_pin 53
+#define motor9A_pin A0
+#define motor9B_pin A1
 
 #define motor1Pwm_pin 2
 #define motor2Pwm_pin 3
@@ -45,18 +49,19 @@
 #define motor6Pwm_pin 7
 #define motor7Pwm_pin 8
 #define motor8Pwm_pin 9
+#define motor9Pwm_pin 10
 
 #define revoluteCount 3895.870773854245
+#define revoluteCount2 3895.870773854245
 
 
-
-int pwm1 = 0, pwm2 = 0, pwm3 = 0, pwm4 = 0, pwm5 = 0, pwm6 = 0, pwm7 = 0, pwm8 = 0;
+int pwm1 = 0, pwm2 = 0, pwm3 = 0, pwm4 = 0, pwm5 = 0, pwm6 = 0, pwm7 = 0, pwm8 = 0, pwm9 = 0;
 long motorPosition1 = 0, motorPosition2 = 0, motorPosition3 = 0, motorPosition4 = 0;
-long motorPosition5 = 0, motorPosition6 = 0, motorPosition7 = 0, motorPosition8 = 0;
+long motorPosition5 = 0, motorPosition6 = 0, motorPosition7 = 0, motorPosition8 = 0, motorPosition9 = 0;
 bool isStop = 0;
 
 float Ang1 = 0, Ang2 = 0, Ang3 = 0, Ang4 = 0;
-float Ang5 = 0, Ang6 = 0, Ang7 = 0, Ang8 = 0;
+float Ang5 = 0, Ang6 = 0, Ang7 = 0, Ang8 = 0, Ang9 = 0;
 
 
 Encoder Encoder1(encoder1_pin1, encoder1_pin2);
@@ -67,7 +72,7 @@ Encoder Encoder5(encoder5_pin1, encoder5_pin2);
 Encoder Encoder6(encoder6_pin1, encoder6_pin2);
 Encoder Encoder7(encoder7_pin1, encoder7_pin2);
 Encoder Encoder8(encoder8_pin1, encoder8_pin2);
-
+Encoder Encoder9(encoder9_pin1, encoder9_pin2);
 
 
 
@@ -123,6 +128,8 @@ void setup() {
   pinMode(motor7B_pin, OUTPUT);
   pinMode(motor8A_pin, OUTPUT);
   pinMode(motor8B_pin, OUTPUT);
+  pinMode(motor9A_pin, OUTPUT);
+  pinMode(motor9B_pin, OUTPUT);
   motor_control(motor1A_pin, motor1B_pin, motor1Pwm_pin, 0);
   motor_control(motor2A_pin, motor2B_pin, motor2Pwm_pin, 0);
   motor_control(motor3A_pin, motor3B_pin, motor3Pwm_pin, 0);
@@ -131,6 +138,7 @@ void setup() {
   motor_control(motor6A_pin, motor6B_pin, motor6Pwm_pin, 0);
   motor_control(motor7A_pin, motor7B_pin, motor7Pwm_pin, 0);
   motor_control(motor8A_pin, motor8B_pin, motor8Pwm_pin, 0);
+  motor_control(motor8A_pin, motor9B_pin, motor9Pwm_pin, 0);
   analogWriteResolution(12);
   Encoder1.write((int)(revoluteCount / 4.0));
   Encoder2.write((int)(-revoluteCount / 4.0));
@@ -149,6 +157,7 @@ void loop() {
   motorPosition6 = Encoder6.read();
   motorPosition7 = Encoder7.read();
   motorPosition8 = Encoder8.read();
+  motorPosition9 = Encoder8.read();
   Ang1 = (motorPosition1 / revoluteCount) * 360.0;
   Ang2 = (motorPosition2 / revoluteCount) * 360.0;
   Ang3 = (motorPosition3 / revoluteCount) * 360.0;

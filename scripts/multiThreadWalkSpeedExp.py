@@ -20,9 +20,9 @@ deltaLmax = 0.02
 Orientation = 0.0
 desiredOrientation =0.0
 Ta = 0.3
-Td = 0.8
-ptd = [-0.02,-0.15]
-ptd1 = [0.02,-0.15]
+Td = 1
+ptd = [0.0,-0.15]
+ptd1 = [0.0,-0.15]
 isStop = False
 isTurn = False
 State = 1
@@ -148,14 +148,14 @@ def MainProssece(*args):
 			leg3th2 = leg3th2_des*tt*0/10
 			leg4th2 = leg4th2_des*tt*0/10
 		else :
-			if (fabs(desiredOrientation-Orientation)) > 5:
-				deltaL = (deltaLmax/fabs(desiredOrientation-Orientation))*(desiredOrientation-Orientation)
-				print("deltaL 1=%s"%deltaL)
-			else:
-				deltaL = deltaLmax*(desiredOrientation-Orientation)/5.0
-			leg1th1,leg1th2,leg2th1,leg2th2 ,leg3th1,leg3th2,leg4th1,leg4th2 = RobotFuncs.generateRemoteCommand(ptd,ptd1,LeftH,RightH,LeftL+deltaL,RightL-deltaL,Ta,Td,t) 
-		outFile = open('./ExpData/WalkExpData20160205-3.txt','a')
-		outFile.write(str(t)+'\t'+str(deltaLmax)+'\t'+str(Orientation)+'\t'+str(desiredOrientation)+'\r\n')
+			#if (fabs(desiredOrientation-Orientation)) > 5:
+			#	deltaL = (deltaLmax/fabs(desiredOrientation-Orientation))*(desiredOrientation-Orientation)
+			#	print("deltaL 1=%s"%deltaL)
+			#else:
+			#	deltaL = deltaLmax*(desiredOrientation-Orientation)/5.0
+			leg1th1,leg1th2,leg2th1,leg2th2 ,leg3th1,leg3th2,leg4th1,leg4th2 = RobotFuncs.generateRemoteCommand(ptd,ptd1,LeftH,RightH,LeftL,RightL,Ta,Td,t) 
+		#outFile = open('./ExpData/WalkExpData20160205-3.txt','a')
+		#outFile.write(str(t)+'\t'+str(deltaLmax)+'\t'+str(Orientation)+'\t'+str(desiredOrientation)+'\r\n')
 		text.delete("1.0",tk.END)
 		text.insert('end',"Orientation = %.3f\n"%Orientation)
 		text.insert('end',"Desired Orientation = %.3f\n\n"%desiredOrientation)

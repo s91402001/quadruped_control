@@ -26,75 +26,27 @@ ptd1 = [0.02,-0.15]
 isStop = False
 isTurn = False
 State = 1
+pawls = 50
+pawlAng = Float32()
+Ang9 = Float32()
 
 def onKeyPress(event):
-	global leg1th1,leg1th2,leg2th1,leg2th2 ,leg3th1,leg3th2,leg4th1,leg4th2
-	global iniTime,LeftH,RightH,LeftL,RightL,Ta,Td
-	global ptd,ptd1,isStop
-	global deltaLmax,Orientation,desiredOrientation
-	#text.delete("1.0",tk.END)
-	#text.insert('end', 'You pressed %s\n' % (event.char, ))
-	if event.char =='q': #Left H
-		LeftH = LeftH + 0.005
+	global pawlAng,pawls
+	global Ang9,pub2
+	if event.char =='q':
+		if pawls ==90:
+			pawls =65
+			pawlAng.data = pawls
+			print("%d\n"%pawls)
+		else:
+			pawls = 90
+			pawlAng.data = pawls
+			print("%d\n"%pawls)
+		
 	elif event.char =='a': 
-		LeftH = LeftH - 0.005
-	elif event.char =='w': #Right H
-		RightH = RightH + 0.005
-	elif event.char =='s':
-		RightH = RightH - 0.005	
-	elif event.char =='e': #Left L
-		LeftL = LeftL + 0.005
-	elif event.char =='d':
-		LeftL = LeftL - 0.005
-	elif event.char =='r': #Right L
-		RightL = RightL + 0.005
-	elif event.char =='f':
-		RightL = RightL - 0.005
-	elif event.char =='t': #Ta
-		Ta = Ta + 0.1
-	elif event.char =='g':
-		Ta = Ta - 0.1
-	elif event.char =='y': #Td
-		Td = Td + 0.1
-	elif event.char =='h':
-		Td = Td - 0.1
-	elif event.char =='u': #Ptd X
-		ptd[0] = ptd[0] + 0.005
-		print ''
-	elif event.char =='j':
-		ptd[0] = ptd[0] - 0.005
-		print ''	
-	elif event.char =='i': #Ptd Y
-		ptd[1] = ptd[1] + 0.005
-		print ''
-	elif event.char =='k': 
-		ptd[1] = ptd[1] - 0.005
-	elif event.char =='o': #Ptd1 X
-		ptd1[0] = ptd1[0] + 0.005
-	elif event.char =='l': 
-		ptd1[0] = ptd1[0] - 0.005
-	elif event.char =='p': #Ptd1 Y
-		ptd1[1] = ptd1[1] + 0.005
-	elif event.char ==';':
-		ptd1[1] = ptd1[1] - 0.005
-	elif event.char =='z':
-		isStop = not isStop
-	elif event.char ==',':#turn left
-		LeftL = LeftL - 0.005
-		RightL = RightL + 0.005
-	elif event.char =='.':#turn right
-		LeftL = LeftL + 0.005
-		RightL = RightL - 0.005
-	elif event.char =='x':
-		desiredOrientation = -90.0
-	elif event.char =='c':
-		desiredOrientation = 0.0
-	elif event.char =='v':
-		desiredOrientation = 90.0
-	elif event.char == 'n':
-		deltaLmax = deltaLmax + 0.005
-	elif event.char == 'b':
-		deltaLmax = deltaLmax - 0.005
+		Ang9.data = Ang9.data + 100
+	elif event.char =='s': 
+		Ang9.data = Ang9.data - 100
 
 
 
@@ -102,18 +54,21 @@ def onKeyPress(event):
 def OrientationCallback(data):
 	global Orientation
 	Orientation = data.x
-	print data.x
-	print Orientation
+	#print data.x
+	#print Orientation
 			
 def MainProssece(*args):
 	global leg1th1,leg1th2,leg2th1,leg2th2 ,leg3th1,leg3th2,leg4th1,leg4th2
 	global iniTime,LeftH,RightH,LeftL,RightL,Ta,Td
 	global ptd,ptd1
-	global deltaLmax,Orientation,desiredOrientation
+	global deltaLmax,Orientation,desiredOrientation,Ang9,pawlAng,pub2
 	pub1 = rospy.Publisher('MotorSetpoint', MotorAngles, queue_size=1024) 
+	pub2 = rospy.Publisher('Pawl',Float32 , queue_size=1024) 
+	pub3 = rospy.Publisher('Motor9',Float32 , queue_size=1024)
 	rospy.Subscriber("BodyOrientation", Point, OrientationCallback)
 	rospy.init_node('reference')
 	angles = MotorAngles()
+
 	rate = rospy.Rate(50) # 10hz
 	
 	while not rospy.is_shutdown():
@@ -127,7 +82,7 @@ def MainProssece(*args):
 			#rospy.loginfo("t = %s"%t)
 			#print ("t = %s"%t)
 			#print("Orientation = %s"%Orientation)
-		elif t >5 and t <15:
+		elif t >5 :
 			#print ("t = %s"%t)
 			x1 = 0
 			x2 = 0
@@ -147,13 +102,7 @@ def MainProssece(*args):
 			leg2th2 = leg2th2_des*tt*0/10
 			leg3th2 = leg3th2_des*tt*0/10
 			leg4th2 = leg4th2_des*tt*0/10
-		else :
-			if (fabs(desiredOrientation-Orientation)) > 5:
-				deltaL = (deltaLmax/fabs(desiredOrientation-Orientation))*(desiredOrientation-Orientation)
-				print("deltaL 1=%s"%deltaL)
-			else:
-				deltaL = deltaLmax*(desiredOrientation-Orientation)/5.0
-			leg1th1,leg1th2,leg2th1,leg2th2 ,leg3th1,leg3th2,leg4th1,leg4th2 = RobotFuncs.generateRemoteCommand(ptd,ptd1,LeftH,RightH,LeftL+deltaL,RightL-deltaL,Ta,Td,t) 
+		
 		outFile = open('./ExpData/WalkExpData20160205-3.txt','a')
 		outFile.write(str(t)+'\t'+str(deltaLmax)+'\t'+str(Orientation)+'\t'+str(desiredOrientation)+'\r\n')
 		text.delete("1.0",tk.END)
@@ -165,7 +114,7 @@ def MainProssece(*args):
 %.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t[%.3f, %.3f]\t\t[%.3f, %.3f]\t\t%s"\
 %(t,LeftH,RightH,LeftL,RightL,Ta,Td,ptd[0],ptd[1],ptd1[0],ptd1[1],isStop))	
 		text.insert('end',"\n\nMotor Reference\n %.3f,\t%.3f,\t%.3f,\t%.3f,\t%.3f,\t%.3f,\t%.3f,\t%.3f\n"%(leg1th1,leg1th2,leg2th1,leg2th2 ,leg3th1,leg3th2,leg4th1,leg4th2))
-		print("%.3f\t%.3f\n"%(leg1th1,leg1th2))
+		#print("%.3f\t%.3f\n"%(leg1th1,leg1th2))
 		angles.ang1 = leg1th1
 		angles.ang2 = leg2th1
 		angles.ang3 = leg3th1
@@ -175,6 +124,8 @@ def MainProssece(*args):
 		angles.ang7 = leg3th2
 		angles.ang8 = leg4th2
 		pub1.publish(angles)
+		pub2.publish(pawlAng)
+		pub3.publish(Ang9)
 		rate.sleep()
 
 def TkProssece(*args):
